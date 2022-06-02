@@ -5,7 +5,6 @@ SELECT
 FROM Genre;
 
 /* OR */
-
 SELECT
     *
 FROM Genre;
@@ -44,6 +43,13 @@ INNER JOIN Album
 ON Artist.Id = Album.ArtistId
 WHERE Album.GenreId = 2 OR Album.GenreId = 4;
 
+/* OR */
+SELECT DISTINCT a.ArtistName
+FROM Artist a
+JOIN Album al ON al.ArtistId = a.Id
+JOIN Genre g ON g.Id = al.GenreId
+WHERE g.Name = 'Soul';
+
 --Query 6 (Albums with no songs)
 SELECT 
 Album.Title
@@ -63,18 +69,17 @@ WHERE Song.Id is NULL;
 --INSERT INTO Song (Title, SongLength, ReleaseDate, GenreId, ArtistId, AlbumId) VALUES ('Pretty Bird', 346, '09/20/2008', 2, 28, 23);
 --INSERT INTO Song (Title, SongLength, ReleaseDate, GenreId, ArtistId, AlbumId) VALUES ('See Fernando', 333, '09/20/2008', 2, 28, 23);
 
-
 --Query 10 (list song titles, album title, and artist name for all of the data you just entered in)
 SELECT
-    Song.Title,
-    Album.Title,
-    Artist.ArtistName
-FROM Song
-LEFT JOIN Album
-ON Song.AlbumId = Album.Id
-LEFT JOIN Artist
-ON Song.ArtistId = Artist.Id
-WHERE Artist.Id = 28 or Album.Id = 23;
+    s.Title,
+    al.Title,
+    ar.ArtistName
+FROM Song s
+LEFT JOIN Album al
+ON s.AlbumId = al.Id
+LEFT JOIN Artist ar
+ON s.ArtistId = ar.Id
+WHERE ar.Id = 28 or al.Id = 23;
 
 --Query 11 (display how many songs exist for each album)
 SELECT
@@ -83,12 +88,28 @@ SELECT
 From Song
 GROUP BY Song.AlbumId;
 
+/* OR (better way) */
+SELECT
+    al.Title,
+    COUNT(s.Id) AS 'Number of Tracks'
+FROM Album al
+LEFT JOIN Song s ON s.AlbumId = al.Id
+GROUP BY al.Id, al.Title;
+
 --Query 12 (display how many songs exist for each artist)
 SELECT
     ArtistId,
     COUNT(Song.Title) AS NumSongsByArtist
 From Song
 GROUP BY Song.ArtistId;
+
+/* OR (better way) */
+SELECT
+a.ArtistName,
+COUNT(s.Id) AS 'Number of Tracks'
+FROM Artist a
+LEFT JOIN Song s ON a.Id = s.ArtistId
+GROUP BY a.Id, a.ArtistName;
 
 /* Query 13 (display how many songs exist for each genre) */
 SELECT
@@ -99,12 +120,13 @@ GROUP BY Song.GenreId;
 
 --Query 14 (list the Artists that have put out records on more than one record label)
 SELECT
-    ar.ArtistName
-FROM Album al
-LEFT JOIN Artist ar
-ON ar.Id = al.ArtistId
+    ar.ArtistName,
+    COUNT(DISTINCT al.Label) AS 'Number of Different Labels'
+FROM Artist ar
+JOIN Album al
+ON al.ArtistId = ar.Id
 GROUP BY ar.ArtistName
-HAVING COUNT(al.Label) > 1;
+HAVING COUNT(DISTINCT al.Label) > 1;
 
 --Query 15 (find the album with the longest duration)
 SELECT TOP 1
